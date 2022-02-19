@@ -1,6 +1,14 @@
 class UsersController < ApplicationController
+	before_action :check_user, only: [:users_list, :edit, :update, :delete_user]
+
 	def users_list
 		@users = User.all.order(id: :asc)
+	end
+
+	def check_user
+		unless current_user.present?
+			redirect_to signin_path
+		end
 	end
 
 	def signup
@@ -10,16 +18,30 @@ class UsersController < ApplicationController
 	def create
 		@user = User.create(users_params)
 		if @user.save
-			render 'index'
+			@user.update(active: true)
+			redirect_to users_list_path
 		else
-			render 'signup'
+			redirect_back(fallback_location: root_path)
 		end
 	end
 
-	def destroy
-		@user = User.find_by(user.id)
+	def edit
+		@user = User.find_by_id(params[:id])
+	end
+
+	def show
+	end
+
+	def update
+		@user = User.find_by_id(params[:id])
+		@user.update!(users_params)
+		redirect_to users_list_path
+	end
+
+	def delete_user
+		@user = User.find_by_id(params[:format])
 		@user.destroy
-		redirect_back
+		redirect_back(fallback_location: root_path)
 	end
 
 	private
